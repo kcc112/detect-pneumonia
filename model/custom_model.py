@@ -16,7 +16,7 @@ class CNNModel(nn.Module):
         self.backbone = resnet18
         # self.backbone = resnet50
 
-        self.fc = nn.Linear(in_features=512, out_features=2) # 2048 - resnet50  512 - resnet18
+        self.fc = nn.Linear(in_features=512, out_features=3) # 2048 - resnet50  512 - resnet18
 
     def forward(self, x):
         x = self.backbone.conv1(x)

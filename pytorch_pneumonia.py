@@ -4,15 +4,17 @@ import matplotlib.pyplot as plt
 import time
 
 from torch import nn, optim, utils
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from torchsummary import summary
 from sklearn.metrics import confusion_matrix
+from config import TRAINING_DIR, VALIDATION_DIR, TEST_DIR, BATCH_SIZE
+from helpers.custom_dataset import CustomImageDataset
 from plot import plot_confusion_matrix, test_and_show_errors, show_image
 from helpers import helpers
 from calculate_model_accuracy import calculate_model_accuracy, validate
 from model import custom_model
-
 
 # Print
 test = 0
@@ -33,8 +35,7 @@ stop_value = 0.000000000000005
 
 PATH = 'pneumonia.pt'
 
-# Parametaers
-batch_size = 10
+# Parameters
 
 learning_rate = 0.000001
 
@@ -45,25 +46,16 @@ momentum = 0.5
 # Data load
 transform = transforms.Compose([
     transforms.Resize(size=(500, 500)),
-    transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-dataset_train = datasets.ImageFolder('chest_xray/train', transform=transform)
+dataset_train = CustomImageDataset(TRAINING_DIR, transform=transform)
+validation_dataset = CustomImageDataset(VALIDATION_DIR, transform=transform)
+dataset_test = CustomImageDataset(TEST_DIR, transform=transform)
 
-dataset_test = datasets.ImageFolder('chest_xray/test', transform=transform)
-
-dataset_validation = datasets.ImageFolder('chest_xray/val', transform=transform)
-
-train_loader = utils.data.DataLoader(
-    dataset_train, batch_size=batch_size, shuffle=True)
-
-test_loader = utils.data.DataLoader(
-    dataset_test, batch_size=batch_size, shuffle=False)
-
-validation_loader = utils.data.DataLoader(
-    dataset_validation, batch_size=batch_size, shuffle=False)
-
+train_loader = DataLoader(dataset_train, batch_size=BATCH_SIZE, shuffle=True)
+validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
+test_loader = DataLoader(dataset_test, batch_size=BATCH_SIZE, shuffle=False)
 
 # Use graphic card if available
 cuda = torch.cuda.is_available()
@@ -98,7 +90,6 @@ error = nn.CrossEntropyLoss()
 # Setup scheduler (provides several methods to adjust the learning rate based on the number of epochs)
 scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
 
-
 start_time = time.time()
 
 for epoch in range(num_epochs):
@@ -131,14 +122,12 @@ for epoch in range(num_epochs):
 
         count += 1
 
-        if (batch_idx + 1) % 15 == 0:
+        if (batch_idx + 1) % BATCH_SIZE == 0:
             # Switch to eval mode
             model.eval()
 
             with torch.no_grad():
                 end_time = time.time()
-                accuracy_test = 0
-                accuracy_validation = 0
 
                 accuracy_test = float(validate.validate(
                     model, device, test_loader))
@@ -156,16 +145,16 @@ for epoch in range(num_epochs):
                 accuracy_validation_list.append(accuracy_validation)
 
                 print("Epoch:", epoch + 1, "Batch:", batch_idx + 1, "Loss:",
-                      float(loss.data), "Accuracy test:", accuracy_test, "%", "Accuracy validation:", accuracy_validation, "%")
-
+                      float(loss.data), "Accuracy test:", accuracy_test, "%", "Accuracy validation:",
+                      accuracy_validation, "%")
 
                 if accuracy_test >= 90 and accuracy_validation >= 90:
                     print("Stop condition achieved loss.data", stop_value)
                     stop = True
 
-             # Switch to tain mode
+            # Switch to train mode
             model.train()
-        
+
         if stop:
             break
 
@@ -190,14 +179,12 @@ plt.ylabel("Accuracy")
 plt.title("CNN: Accuracy vs Number of iteration")
 plt.show()
 
-
 # CALCULATE MODEL ACCURACY ON TRAIN AND TEST DATA
 
 calculate_model_accuracy.calculate_model_accuracy(
     model, device, test_loader, "Final test data")
 calculate_model_accuracy.calculate_model_accuracy(
     model, device, train_loader, "Final train data")
-
 
 # DRAW CONFUSION MATRIX
 
@@ -212,7 +199,6 @@ cm = confusion_matrix(dataset_test.targets, test_preds.argmax(dim=1))
 plot_confusion_matrix.plot_confusion_matrix(cm, dataset_test.classes,
                                             title="Confusion matrix test data")
 plt.show()
-
 
 # SHOW WRONGLY CLASSIFIED PICTURES
 
