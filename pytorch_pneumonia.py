@@ -39,17 +39,23 @@ PATH = 'pneumonia.pt'
 
 learning_rate = 0.000001
 
-num_epochs = 1
+num_epochs = 2
 
 momentum = 0.5
 
-# Data load
+train_transform = transforms.Compose([
+    transforms.Resize(size=(525, 525)),
+    transforms.RandomRotation(degrees=(-20, 20)),
+    transforms.CenterCrop(size=500),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+
 transform = transforms.Compose([
     transforms.Resize(size=(500, 500)),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-dataset_train = CustomImageDataset(TRAINING_DIR, transform=transform)
+dataset_train = CustomImageDataset(TRAINING_DIR, transform=train_transform)
 validation_dataset = CustomImageDataset(VALIDATION_DIR, transform=transform)
 dataset_test = CustomImageDataset(TEST_DIR, transform=transform)
 
