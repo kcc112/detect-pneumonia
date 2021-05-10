@@ -3,3 +3,6 @@ __pycache__
 venv
 data
 chest_xray
+pneumonia1.pt
+pneumonia2.pt
+pneumonia3.pt

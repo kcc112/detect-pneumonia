@@ -33,13 +33,13 @@ stop = False
 
 stop_value = 0.000000000000005
 
-PATH = 'pneumonia.pt'
+PATH = 'pneumonia3.pt'
 
 # Parameters
 
-learning_rate = 0.000001
+learning_rate = 0.000005
 
-num_epochs = 1
+num_epochs = 2
 
 momentum = 0.5
 
@@ -54,8 +54,8 @@ validation_dataset = CustomImageDataset(VALIDATION_DIR, transform=transform)
 dataset_test = CustomImageDataset(TEST_DIR, transform=transform)
 
 train_loader = DataLoader(dataset_train, batch_size=BATCH_SIZE, shuffle=True)
-validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
-test_loader = DataLoader(dataset_test, batch_size=BATCH_SIZE, shuffle=False)
+validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=True)
+test_loader = DataLoader(dataset_test, batch_size=BATCH_SIZE, shuffle=True)
 
 # Use graphic card if available
 cuda = torch.cuda.is_available()
@@ -148,7 +148,7 @@ for epoch in range(num_epochs):
                       float(loss.data), "Accuracy test:", accuracy_test, "%", "Accuracy validation:",
                       accuracy_validation, "%")
 
-                if accuracy_test >= 90 and accuracy_validation >= 90:
+                if accuracy_test >= 90:
                     print("Stop condition achieved loss.data", stop_value)
                     stop = True
 
@@ -162,7 +162,7 @@ for epoch in range(num_epochs):
     scheduler.step()
 
 # SAVE MODEL
-# torch.save(model.state_dict(), PATH)
+torch.save(model.state_dict(), PATH)
 
 # VISUALIZATION LOSS AND ACCURACY
 

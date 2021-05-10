@@ -14,23 +14,28 @@ VIRAL_PNEUMONIA = 2
 class CustomImageDataset(Dataset):
     def __init__(self,  data_dir, transform):
         self.classes = ('NORMAL', 'BACTERIAL_PNEUMONIA', 'VIRAL_PNEUMONIA')
-        self.targets = (0, 1, 2)
         self.batch_size = BATCH_SIZE
         self.transform = transform
         self.data_dir = data_dir
 
         data = []
+        targets = []
         for group in os.listdir(data_dir):
-            for img in os.listdir(data_dir + "\\" + group):
+            for img in os.listdir(data_dir + "/" + group):
                 if group == "NORMAL":
                     data.append({'path': group + "/" + img, 'label': NORMAL})
+                    targets.append(0)
                 elif group == "PNEUMONIA":
                     if "bacteria" in img:
                         data.append({'path': group + "/" + img, 'label': BACTERIAL_PNEUMONIA})
+                        targets.append(1)
                     elif "virus" in img:
+                        targets.append(2)
                         data.append({'path': group + "/" + img, 'label': VIRAL_PNEUMONIA})
 
         self.image_dataset = data
+        self.targets = targets
+
 
     def __len__(self):
         return len(self.image_dataset)
